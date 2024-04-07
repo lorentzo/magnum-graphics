@@ -57,6 +57,7 @@ LUTShader::LUTShader() {
     CORRADE_INTERNAL_ASSERT_OUTPUT(link());
 
     _colorUniform = uniformLocation("color");
+    setUniform(uniformLocation("textureData"), TextureUnit);
 }
 
 }}

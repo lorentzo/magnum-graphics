@@ -35,7 +35,11 @@
 #include <Magnum/GL/Buffer.h>
 #include <Magnum/GL/DefaultFramebuffer.h>
 #include <Magnum/GL/Mesh.h>
+#include <Magnum/GL/Texture.h>
+#include <Magnum/GL/TextureFormat.h>
 #include <Magnum/Platform/Sdl2Application.h>
+#include <Magnum/Trade/AbstractImporter.h>
+#include <Magnum/Trade/ImageData.h>
 
 #include "LUTShader.h"
 
@@ -50,12 +54,14 @@ class LUTExample: public Platform::Application {
 
         GL::Mesh _mesh;
         LUTShader _shader;
+        GL::Texture2D _texture;
 };
 
 LUTExample::LUTExample(const Arguments& arguments):
     Platform::Application{arguments, Configuration{}
         .setTitle("Magnum LUT Example")}
 {
+    // Mesh data.
     struct QuadVertex {
         Vector2 position;
         Vector2 textureCoordinates;
@@ -71,12 +77,30 @@ LUTExample::LUTExample(const Arguments& arguments):
         2, 1, 3                         /* |/ / | */
     };                                  /* 2 2--0 */
 
+    // Create mesh.
     _mesh.setCount(Containers::arraySize(indices))
         .addVertexBuffer(GL::Buffer{vertices}, 0,
             LUTShader::Position{},
             LUTShader::TextureCoordinates{})
         .setIndexBuffer(GL::Buffer{indices}, 0,
             GL::MeshIndexType::UnsignedInt);
+
+    // Import image.
+    PluginManager::Manager<Trade::AbstractImporter> manager;
+    Containers::Pointer<Trade::AbstractImporter> importer =
+        manager.loadAndInstantiate("TgaImporter");
+    const Utility::Resource rs{"lut-data"};
+    if(!importer || !importer->openData(rs.getRaw("texture.tga")))
+        std::exit(1);
+
+    // Create texture.
+    Containers::Optional<Trade::ImageData2D> image = importer->image2D(0);
+    CORRADE_INTERNAL_ASSERT(image);
+    _texture.setWrapping(GL::SamplerWrapping::ClampToEdge)
+        .setMagnificationFilter(GL::SamplerFilter::Linear)
+        .setMinificationFilter(GL::SamplerFilter::Linear)
+        .setStorage(1, GL::textureFormat(image->format()), image->size())
+        .setSubImage(0, {}, *image);
 }
 
 void LUTExample::drawEvent() {
@@ -86,6 +110,7 @@ void LUTExample::drawEvent() {
 
     _shader
         .setColor(0xffb2b2_rgbf)
+        .bindTexture(_texture)
         .draw(_mesh);
 
     swapBuffers();

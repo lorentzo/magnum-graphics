@@ -31,6 +31,7 @@
 
 #include <Magnum/GL/AbstractShaderProgram.h>
 #include <Magnum/Math/Color.h>
+#include <Magnum/GL/Texture.h>
 
 namespace Magnum { namespace Examples {
 
@@ -46,7 +47,14 @@ class LUTShader: public GL::AbstractShaderProgram {
             return *this;
         }
 
+        LUTShader& bindTexture(GL::Texture2D& texture) {
+            texture.bind(TextureUnit);
+            return *this;
+        }
+
     private:
+        enum: Int { TextureUnit = 0 };
+
         Int _colorUniform;
 };
 
