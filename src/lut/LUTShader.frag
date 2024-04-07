@@ -90,9 +90,8 @@ vec3 inferno(float t) {
 
 }
 
-
 void main() {
     float textureColor = texture(textureData, interpolatedTextureCoordinates).r;
-    fragmentColor.rgb = magma(textureColor);
+    fragmentColor.rgb = viridis(textureColor);
     fragmentColor.a = 1.0;
 }

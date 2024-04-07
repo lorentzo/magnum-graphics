@@ -116,7 +116,6 @@ void LUTExample::drawEvent() {
     swapBuffers();
 }
 
-
 }}
 
 MAGNUM_APPLICATION_MAIN(Magnum::Examples::LUTExample)
