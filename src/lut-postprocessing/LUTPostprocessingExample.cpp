@@ -46,7 +46,6 @@
 #include <Magnum/Platform/Sdl2Application.h>
 #include <Magnum/SceneGraph/Camera.h>
 #include <Magnum/SceneGraph/Drawable.h>
-#include <Magnum/SceneGraph/MatrixTransformation3D.h>
 #include <Magnum/SceneGraph/Scene.h>
 #include <Magnum/Shaders/PhongGL.h>
 #include <Magnum/Trade/AbstractImporter.h>
@@ -56,14 +55,12 @@
 #include <Magnum/Trade/SceneData.h>
 #include <Magnum/Trade/TextureData.h>
 
-//#include "LUTShader.h"
+#include "PostProcessingCamera.h"
+#include "Types.h"
 
 namespace Magnum { namespace Examples {
 
 using namespace Math::Literals;
-
-typedef SceneGraph::Object<SceneGraph::MatrixTransformation3D> Object3D;
-typedef SceneGraph::Scene<SceneGraph::MatrixTransformation3D> Scene3D;
 
 class LUTPostprocessingExample: public Platform::Application {
     public:
@@ -117,6 +114,8 @@ LUTPostprocessingExample::LUTPostprocessingExample(const Arguments& arguments):
         .parse(arguments.argc, arguments.argv);
 
     // Camera.
+    // Default camera.
+    /*
     _cameraObject
         .setParent(&_scene)
         .translate(Vector3::zAxis(5.0f));
@@ -126,11 +125,22 @@ LUTPostprocessingExample::LUTPostprocessingExample(const Arguments& arguments):
             Matrix4::perspectiveProjection(35.0_degf, 1.0f, 0.01f, 1000.0f)
         )
         .setViewport(GL::defaultFramebuffer.viewport().size());
+    */
+
+    // Post processing camera.
+    _cameraObject
+        .setParent(&_scene)
+        .translate(Vector3::zAxis(5.0f));
+    (_camera = new PostProcessingCamera(_cameraObject))
+        ->setAspectRatioPolicy(SceneGraph::AspectRatioPolicy::Extend)
+        .setProjectionMatrix(Matrix4::perspectiveProjection(35.0_degf, 1.0f, 0.001f, 100))
+        .setViewport(GL::defaultFramebuffer.viewport().size());
 
     // Manipulator.
     _manipulator.setParent(&_scene);
 
     // GL state.
+    GL::Renderer::setClearColor({0.1f, 0.1f, 0.1f});
     GL::Renderer::enable(GL::Renderer::Feature::DepthTest);
     GL::Renderer::enable(GL::Renderer::Feature::FaceCulling);
 

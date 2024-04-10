@@ -46,7 +46,13 @@ find_package(Magnum REQUIRED
 
 set_directory_properties(PROPERTIES CORRADE_USE_PEDANTIC_FLAGS ON)
 
-add_executable(magnum-lut-postprocessing WIN32 LUTPostprocessingExample.cpp)
+corrade_add_resource(LUTPostProcessing_RESOURCES resources.conf)
+
+add_executable(magnum-lut-postprocessing WIN32 
+    LUTPostprocessingExample.cpp
+    PostProcessingCamera.cpp
+    PostProcessingCamera.h
+    ${LUTPostProcessing_RESOURCES})
 target_link_libraries(magnum-lut-postprocessing PRIVATE
     Corrade::Main
     Magnum::Application
