@@ -27,6 +27,14 @@ class PostProcessingCamera: public SceneGraph::Camera3D {
                 typedef GL::Attribute<0, Vector2> Position;
 
                 PostProcessingShader();
+
+                PostProcessingShader& bindTexture(GL::Texture2D& texture) {
+                    texture.bind(TextureUnit);
+                    return *this;
+                }
+            
+            private:
+                enum: Int { TextureUnit = 0 };
         };
 
         class PostProcessingCanvas: public Object3D {
@@ -37,7 +45,7 @@ class PostProcessingCamera: public SceneGraph::Camera3D {
 
             private:
                 PostProcessingShader shader;
-                GL::Buffer buffer;
+                GL::Buffer vertexBuffer;
                 GL::Mesh screenFillingMesh;
                 GL::Texture2D* frame;
         };

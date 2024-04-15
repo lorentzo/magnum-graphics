@@ -38,12 +38,17 @@ void PostProcessingCamera::setViewport(const Vector2i& size) {
 }
 
 void PostProcessingCamera::draw(SceneGraph::DrawableGroup3D& group) {
+    
+    // Render scene.
     SceneGraph::Camera3D::draw(group);
-
+    
+    // Store render into framebuffer.
     GL::defaultFramebuffer.read({{}, viewport()}, framebuffer, GL::BufferUsage::DynamicDraw);
-
+    
+    // Store framebuffer into texture.
     frame->setImage(0, GL::TextureFormat::RGB8, framebuffer);
-
+    
+    // Render quad filling mesh with texture.
     canvas.draw();
 }
 
@@ -62,11 +67,10 @@ PostProcessingCamera::PostProcessingShader::PostProcessingShader() {
 
     CORRADE_INTERNAL_ASSERT_OUTPUT(link());
 
-    setUniform(uniformLocation("frame"), 0);
+    setUniform(uniformLocation("frame"), TextureUnit);
 }
 
 PostProcessingCamera::PostProcessingCanvas::PostProcessingCanvas(GL::Texture2D* frame, Object3D* parent): Object3D(parent), frame(frame) {
-    
     // Canvas = a quad covering screen.
     const Vector2 vertices[] = {
         {1.0f, -1.0f},
@@ -74,15 +78,18 @@ PostProcessingCamera::PostProcessingCanvas::PostProcessingCanvas(GL::Texture2D* 
         {0.0f, -1.0f},
         {0.0f, 1.0f}
     };
-    buffer.setData(vertices, GL::BufferUsage::StaticDraw);
+    vertexBuffer.setData(vertices, GL::BufferUsage::StaticDraw);
     screenFillingMesh.setPrimitive(GL::MeshPrimitive::TriangleStrip)
         .setCount(4)
-        .addVertexBuffer(buffer, 0, PostProcessingShader::Position());
+        .addVertexBuffer(vertexBuffer, 0, PostProcessingShader::Position());
 }
 
 void PostProcessingCamera::PostProcessingCanvas::draw() {
-    frame->bind(0); // TODO: Make sure that this is  OK.
-    shader.draw(screenFillingMesh);
+    printf("OK6\n");
+    shader.bindTexture(*frame); // TODO; problem!
+    printf("OK7\n");
+    shader.draw(screenFillingMesh);       
+    printf("OK8\n");
 }
 
 }}

@@ -82,8 +82,9 @@ class LUTPostprocessingExample: public Platform::Application {
         Containers::Array<Containers::Optional<GL::Mesh>> _meshes;
         SceneGraph::DrawableGroup3D _drawables;
 
-        Object3D _manipulator, _cameraObject;
-        SceneGraph::Camera3D* _camera;
+        Object3D *_cameraObject;
+        Object3D _manipulator;
+        PostProcessingCamera* _camera;
         
         Vector3 _previousPosition;
 };
@@ -114,24 +115,11 @@ LUTPostprocessingExample::LUTPostprocessingExample(const Arguments& arguments):
         .parse(arguments.argc, arguments.argv);
 
     // Camera.
-    // Default camera.
-    /*
-    _cameraObject
-        .setParent(&_scene)
-        .translate(Vector3::zAxis(5.0f));
-    (*(_camera = new SceneGraph::Camera3D{_cameraObject}))
-        .setAspectRatioPolicy(SceneGraph::AspectRatioPolicy::Extend)
-        .setProjectionMatrix(
-            Matrix4::perspectiveProjection(35.0_degf, 1.0f, 0.01f, 1000.0f)
-        )
-        .setViewport(GL::defaultFramebuffer.viewport().size());
-    */
 
     // Post processing camera.
-    _cameraObject
-        .setParent(&_scene)
-        .translate(Vector3::zAxis(5.0f));
-    (_camera = new PostProcessingCamera(_cameraObject))
+    _cameraObject = new Object3D(&_scene);
+    _cameraObject->translate(Vector3::zAxis(3.0f));
+    (_camera = new PostProcessingCamera(*_cameraObject))
         ->setAspectRatioPolicy(SceneGraph::AspectRatioPolicy::Extend)
         .setProjectionMatrix(Matrix4::perspectiveProjection(35.0_degf, 1.0f, 0.001f, 100))
         .setViewport(GL::defaultFramebuffer.viewport().size());
@@ -198,10 +186,11 @@ void ColoredDrawable::draw(const Matrix4& transformationMatrix, SceneGraph::Came
 
 void LUTPostprocessingExample::drawEvent() {
     GL::defaultFramebuffer.clear(GL::FramebufferClear::Color|GL::FramebufferClear::Depth);
-
     _camera->draw(_drawables);
 
     swapBuffers();
+
+    redraw();
 }
 
 void LUTPostprocessingExample::viewportEvent(ViewportEvent& event) {
@@ -223,10 +212,10 @@ void LUTPostprocessingExample::mouseScrollEvent(MouseScrollEvent& event) {
     if(!event.offset().y()) return;
 
     /* Distance to origin */
-    const Float distance = _cameraObject.transformation().translation().z();
+    const Float distance = _cameraObject->transformation().translation().z();
 
     /* Move 15% of the distance back or forward */
-    _cameraObject.translate(Vector3::zAxis(
+    _cameraObject->translate(Vector3::zAxis(
         distance*(1.0f - (event.offset().y() > 0 ? 1/0.85f : 0.85f))));
 
     redraw();

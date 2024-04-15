@@ -62,12 +62,7 @@ vec3 inferno(float t) {
 }
 
 void main() {
-    /*
-    color.rgb = texture(frame, textureCoordinate).rgb;
-    color.a = 1.0;
-    */
-
     float textureColor = texture(frame, textureCoordinate).r;
-    color.rgb = vec3(1.0, 0.0, 0);// viridis(textureColor);
+    color.rgb = viridis(textureColor);
     color.a = 1.0;
 }
