@@ -1,6 +1,7 @@
 
 #include "PostProcessingCamera.h"
 
+#include <Corrade/Containers/Optional.h>
 #include <Corrade/Containers/Array.h>
 #include <Corrade/Containers/Iterable.h>
 #include <Corrade/Containers/StringView.h>
@@ -12,6 +13,9 @@
 #include <Magnum/GL/Shader.h>
 #include <Magnum/GL/TextureFormat.h>
 #include <Magnum/GL/Version.h>
+#include <Magnum/ImageView.h>
+#include <Magnum/Trade/AbstractImporter.h>
+#include <Magnum/Trade/ImageData.h>
 
 namespace Magnum { namespace Examples {
 
@@ -53,7 +57,7 @@ void PostProcessingCamera::draw(SceneGraph::DrawableGroup3D& group) {
 }
 
 PostProcessingCamera::PostProcessingShader::PostProcessingShader() {
-    Utility::Resource rs("shaders");
+    Utility::Resource rs("lut-postprocessing-resources");
 
     GL::Shader vert(GL::Version::GL330, GL::Shader::Type::Vertex);
     GL::Shader frag(GL::Version::GL330, GL::Shader::Type::Fragment);
@@ -82,14 +86,34 @@ PostProcessingCamera::PostProcessingCanvas::PostProcessingCanvas(GL::Texture2D* 
     screenFillingMesh.setPrimitive(GL::MeshPrimitive::TriangleStrip)
         .setCount(4)
         .addVertexBuffer(vertexBuffer, 0, PostProcessingShader::Position());
+
+    // LUT texture.
+    // Image importer.
+    PluginManager::Manager<Trade::AbstractImporter> manager;
+    Containers::Pointer<Trade::AbstractImporter> importer =
+        manager.loadAndInstantiate("TgaImporter");
+    const Utility::Resource rs{"lut-postprocessing-resources"};
+    if(!importer || !importer->openData(rs.getRaw("stone.tga")))
+        std::exit(1);
+    // Image to texture.
+    Containers::Optional<Trade::ImageData2D> image = importer->image2D(0);
+    CORRADE_INTERNAL_ASSERT(image);
+    LUTtexture->setWrapping(GL::SamplerWrapping::ClampToEdge)
+        .setMagnificationFilter(GL::SamplerFilter::Linear)
+        .setMinificationFilter(GL::SamplerFilter::Linear)
+        .setStorage(1, GL::textureFormat(image->format()), image->size())
+        .setSubImage(0, {}, *image);
 }
 
 void PostProcessingCamera::PostProcessingCanvas::draw() {
-    printf("OK6\n");
-    shader.bindTexture(*frame); // TODO; problem!
-    printf("OK7\n");
+    //printf("OK6\n");
+    if(LUTtexture!=NULL)
+        shader.bindTexture(LUTtexture); // TODO; problem!
+    else
+        printf("NULL\n");
+    //printf("OK7\n");
     shader.draw(screenFillingMesh);       
-    printf("OK8\n");
+    //printf("OK8\n");
 }
 
 }}

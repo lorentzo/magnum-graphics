@@ -28,9 +28,9 @@ class PostProcessingCamera: public SceneGraph::Camera3D {
 
                 PostProcessingShader();
 
-                PostProcessingShader& bindTexture(GL::Texture2D& texture) {
-                    texture.bind(TextureUnit);
-                    return *this;
+                PostProcessingShader* bindTexture(GL::Texture2D* texture) {
+                    texture->bind(TextureUnit);
+                    return this;
                 }
             
             private:
@@ -44,10 +44,11 @@ class PostProcessingCamera: public SceneGraph::Camera3D {
                 void draw();
 
             private:
-                PostProcessingShader shader;
                 GL::Buffer vertexBuffer;
                 GL::Mesh screenFillingMesh;
+                PostProcessingShader shader;
                 GL::Texture2D* frame;
+                GL::Texture2D* LUTtexture;
         };
 
         GL::BufferImage2D framebuffer;
